@@ -1,71 +1,37 @@
-
 const { MongoClient } = require("mongodb");
 
-// Local MongoDB connection
-const url = "mongodb://localhost:27017";
-const client = new MongoClient(url);
+async function main() {
+  const uri = "mongodb://localhost:27017";
+  const client = new MongoClient(uri);
 
-async function run() {
   try {
     await client.connect();
-    console.log("✅ Connected to MongoDB");
+    console.log("Connected to MongoDB server");
 
     const db = client.db("libraryDB");
-    const books = db.collection("books");
+    const booksCollection = db.collection("books");
 
-    // --------------------------
-    // 1. CREATE - Insert a new book
-    // --------------------------
-    await books.insertOne({
-      title: "The Clean Coder",
-      author: "Robert C. Martin",
-      year: 2011,
-      genre: "Programming"
-    });
-    console.log("📌 Added new book: The Clean Coder");
+    // insert many books
+    const books = [
+      { title: "To Kill a Mockingbird", author: "Harper Lee", year: 1960 },
+      { title: "1984", author: "George Orwell", year: 1949 },
+      { title: "The Great Gatsby", author: "F. Scott Fitzgerald", year: 1925 },
+      { title: "Brave New World", author: "Aldous Huxley", year: 1932 },
+      { title: "The Hobbit", author: "J.R.R. Tolkien", year: 1937 },
+      { title: "The Catcher in the Rye", author: "J.D. Salinger", year: 1951 },
+      { title: "Pride and Prejudice", author: "Jane Austen", year: 1813 },
+      { title: "The Lord of the Rings", author: "J.R.R. Tolkien", year: 1954 },
+      { title: "Animal Farm", author: "George Orwell", year: 1945 },
+      { title: "The Alchemist", author: "Paulo Coelho", year: 1988 },
+      { title: "Moby Dick", author: "Herman Melville", year: 1851 },
+      { title: "Wuthering Heights", author: "Emily Brontë", year: 1847 }
+    ];
 
-    // --------------------------
-    // 2. READ - Find all books by George Orwell
-    // --------------------------
-    const orwellBooks = await books.find({ author: "George Orwell" }).toArray();
-    console.log("📖 Books by George Orwell:", orwellBooks);
-
-    // --------------------------
-    // 3. UPDATE - Update year of "The Hobbit"
-    // --------------------------
-    await books.updateOne(
-      { title: "The Hobbit" },
-      { $set: { year: 1938 } }
-    );
-    console.log("✏️ Updated 'The Hobbit' year to 1938");
-
-    // --------------------------
-    // 4. DELETE - Remove "Moby Dick"
-    // --------------------------
-    await books.deleteOne({ title: "Moby Dick" });
-    console.log("🗑️ Deleted 'Moby Dick' from collection");
-
-    // --------------------------
-    // 5. AGGREGATION - Count books by author
-    // --------------------------
-    const aggregation = await books.aggregate([
-      { $group: { _id: "$author", totalBooks: { $sum: 1 } } },
-      { $sort: { totalBooks: -1 } }
-    ]).toArray();
-    console.log("📊 Number of books by author:", aggregation);
-
-    // --------------------------
-    // 6. INDEXING - Create index on title
-    // --------------------------
-    await books.createIndex({ title: 1 });
-    console.log("⚡ Created index on 'title' for faster searching");
-
-  } catch (err) {
-    console.error("❌ Error:", err);
+    const result = await booksCollection.insertMany(books);
+    console.log(`${result.insertedCount} books were successfully inserted.`);
   } finally {
     await client.close();
-    console.log("🔒 Connection closed");
   }
 }
 
-run();
+main().catch(console.error);
